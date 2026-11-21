@@ -1,0 +1,36 @@
+[project]
+name = "ms_ob01"
+version = "1.0.0"
+description = "Gestor del ciclo de vida de tareas atomicas del bloque de orquestacion IBNM"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "aiokafka>=0.10.0",
+    "asyncpg>=0.29.0",
+    "crewai[tools]>=1.15.22,<2.0.0",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.0.0",
+    "sqlalchemy[asyncio]>=2.1.8",
+]
+
+[project.scripts]
+kickoff = "ms_ob01.main:kickoff"
+ms-ob01 = "ms_ob01.main:main"
+run_crew = "ms_ob01.main:kickoff"
+plot = "ms_ob01.main:plot"
+run_with_trigger = "ms_ob01.main:run_with_trigger"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "deptry>=0.25.1",
+]
+
+[tool.deptry]
+known_first_party = ["ms_ob01"]
+
+[tool.deptry.per_rule_ignores]
+DEP002 = ["asyncpg"]

@@ -1,0 +1,42 @@
+{
+  "role_id": "faaee4f7-61e6-42f9-9106-34be4074661e",
+  "user_id": "1bcff938-aafc-4064-8c8c-45cc6baf946d",
+  "intent_id": "73dd8d30-c2b6-4508-92c6-58563bc4aa0d",
+  "policy_id": "aa760ac8-ef73-4fc6-9d28-87ed7793d0f8",
+  "logical_task_id": "ff4cf703-d959-449c-91c7-1ae05204b91d",
+  "atomic_task_id": "31c94c43-fb90-4597-8fdf-8d765d2e8045",
+  "devices": [
+    {
+      "device_id": "6ab9fb78-f3d6-41cf-bafd-5ede7e87f6a3",
+      "hostname": "router-netconf-01",
+      "vendor": "huawei",
+      "platform": "VRP",
+      "management_ip": "127.0.0.1",
+      "capabilities": [
+        "candidate_config",
+        "cli",
+        "config_backup",
+        "confirmed_commit",
+        "netconf",
+        "rollback",
+        "ssh"
+      ]
+    },
+    {
+      "device_id": "e31548e8-db34-44cd-8b3c-253b820ec78e",
+      "hostname": "router-cli-02",
+      "vendor": "cisco",
+      "platform": "IOS-XE",
+      "management_ip": "127.0.0.1",
+      "capabilities": [
+        "candidate_config",
+        "cli",
+        "config_backup",
+        "confirmed_commit",
+        "netconf",
+        "rollback",
+        "ssh"
+      ]
+    }
+  ]
+}

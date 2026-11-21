@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-pb05
+  namespace: ibnm-bloque-planificacion-dev
+  labels:
+    app: ms-pb05
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-pb05
+  template:
+    metadata:
+      labels:
+        app: ms-pb05
+    spec:
+      imagePullSecrets:
+        - name: harbor-pull-secret
+
+      containers:
+        - name: ms-pb05
+          image: 172.19.0.1:8080/ibnm/ms-pb05:dev-latest
+          imagePullPolicy: Always
+
+          ports:
+            - name: http
+              containerPort: 6400
+              protocol: TCP
+
+          env:
+            - name: RUN_MODE
+              value: "api"
+
+            - name: API_HOST
+              value: "0.0.0.0"
+
+            - name: API_PORT
+              value: "6400"
+
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "172.19.0.1:9092"
+
+            - name: KAFKA_POLICY_PROPOSED_TOPIC
+              value: "ibnn.policy_proposed"
+
+            - name: KAFKA_TOPIC
+              value: "ibnn.policy_proposed"
+
+            - name: KAFKA_TOPIC_OUT
+              value: "ibnn.logical_task_proposed"
+
+            - name: KAFKA_GROUP_ID
+              value: "ms-pb05-consumer-group"
+
+            - name: DEEPSEEK_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ms-pb05-secrets
+                  key: deepseek-api-key
+
+            - name: DEEPSEEK_BASE_URL
+              value: "https://api.deepseek.com/v1"
+
+            - name: DEEPSEEK_MODEL
+              value: "deepseek-chat"
+
+          readinessProbe:
+            httpGet:
+              path: /api/v1/agent/logical-task-gen/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /api/v1/agent/logical-task-gen/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "768Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-pb05
+  namespace: ibnm-bloque-planificacion-dev
+spec:
+  type: ClusterIP
+  selector:
+    app: ms-pb05
+  ports:
+    - name: http
+      port: 6400
+      targetPort: http
+      protocol: TCP

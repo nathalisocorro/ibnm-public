@@ -1,0 +1,172 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-ob02
+  namespace: ibnm-bloque-orquestacion
+  labels:
+    app: ms-ob02
+    bloque: orquestacion
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-ob02
+  template:
+    metadata:
+      labels:
+        app: ms-ob02
+        bloque: orquestacion
+    spec:
+      imagePullSecrets:
+        - name: harbor-pull-secret
+      containers:
+        - name: ms-ob02
+          image: 172.19.0.1:8080/ibnm/ms-ob02:dev-latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 7300
+              name: http
+
+          env:
+            # --- Kafka ---
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "172.19.0.1:9092"
+            - name: KAFKA_TOPIC_ATOMIC_TASK_PROPOSED
+              value: "ibnn.atomic_task_proposed"
+            - name: KAFKA_GROUP_ID
+              value: "ms-ob02-consumer-group"
+            - name: KAFKA_TOPIC_COMMAND_SENT
+              value: "ibnn.command_sent"
+            - name: KAFKA_TOPIC_ATOMIC_TASK_FAULT
+              value: "ibnn.atomic_task_fault"
+            - name: KAFKA_TOPIC_COMMAND_EXECUTION_COMPLETED
+              value: "ibnn.command_execution_completed"
+            - name: KAFKA_TOPIC_COMMAND_EXECUTION_FAILED
+              value: "ibnn.command_execution_failed"
+            - name: KAFKA_EXECUTOR_GROUP_ID
+              value: "ms-ob02-executor-group"
+            - name: MAX_CONCURRENT_EXECUTIONS
+              value: "3"
+
+            # --- LLM y RAG ---
+            - name: OLLAMA_BASE_URL
+              value: "http://172.19.0.1:11434"
+            - name: OLLAMA_EMBED_MODEL
+              value: "nomic-embed-text"
+            - name: DEEPSEEK_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ms-ob02-secrets
+                  key: deepseek-api-key
+
+            # --- Base de Datos ---
+            - name: POSTGRES_HOST
+              value: "172.19.0.1"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: "ibn_db"
+            - name: POSTGRES_USER
+              value: "ibn_user"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ms-ob02-secrets
+                  key: postgres-password
+
+            # --- Credenciales unificadas por hostname y transporte ---
+            - name: DEVICE_CREDENTIALS
+              valueFrom:
+                secretKeyRef:
+                  name: ms-ob02-secrets
+                  key: device-credentials
+
+            # --- Fallback global: Netmiko (CLI/SSH) ---
+            - name: NETMIKO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ms-ob02-secrets
+                  key: netmiko-username
+            - name: NETMIKO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ms-ob02-secrets
+                  key: netmiko-password
+            - name: NETMIKO_PORT
+              value: "22"
+            - name: NETMIKO_TIMEOUT
+              value: "60"
+            - name: NETMIKO_CONN_TIMEOUT
+              value: "30"
+            - name: NETMIKO_DEVICE_TYPE
+              value: "cisco_ios"
+
+            # --- Fallback global: NETCONF ---
+            - name: NETCONF_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ms-ob02-secrets
+                  key: netconf-username
+            - name: NETCONF_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ms-ob02-secrets
+                  key: netconf-password
+            - name: NETCONF_PORT
+              value: "830"
+            - name: NETCONF_TIMEOUT
+              value: "60"
+            - name: NETCONF_HOST_KEY_VALIDATION
+              value: "false"
+
+            # --- Fallback global: RESTCONF ---
+            - name: RESTCONF_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ms-ob02-secrets
+                  key: restconf-username
+            - name: RESTCONF_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ms-ob02-secrets
+                  key: restconf-password
+            - name: RESTCONF_PORT
+              value: "443"
+            - name: RESTCONF_BASE_PATH
+              value: "/restconf"
+            - name: RESTCONF_VERIFY_TLS
+              value: "false"
+            - name: RESTCONF_TIMEOUT
+              value: "30"
+
+            # --- Ejecución: Ansible ---
+            - name: ANSIBLE_TIMEOUT
+              value: "600"
+            - name: ANSIBLE_INVENTORY_DIR
+              value: "./inventory"
+            - name: ANSIBLE_PRIVATE_KEY_FILE
+              value: "/etc/ansible/ssh/id_ed25519"
+
+          volumeMounts:
+            - name: ansible-ssh
+              mountPath: /etc/ansible/ssh
+              readOnly: true
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+
+      volumes:
+        - name: ansible-ssh
+          secret:
+            secretName: ms-ob02-secrets
+            defaultMode: 0400
+            items:
+              - key: ansible-private-key
+                path: id_ed25519
+
+

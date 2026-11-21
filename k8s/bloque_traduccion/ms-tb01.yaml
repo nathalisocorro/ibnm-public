@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-tb01
+  namespace: ibnm-bloque-traduccion
+  labels:
+    app: ms-tb01
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-tb01
+  template:
+    metadata:
+      labels:
+        app: ms-tb01
+    spec:
+      imagePullSecrets:
+        - name: harbor-pull-secret
+      containers:
+        - name: ms-tb01
+          image: 172.19.0.1:8080/ibnm/ms-tb01:dev-latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 4001
+              protocol: TCP
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "172.19.0.1:9092,172.19.0.1:9093,172.19.0.1:9094"
+            - name: KAFKA_TOPIC
+              value: "ibnn.intent_json_published"
+            - name: KAFKA_GROUP_ID
+              value: "ms-tb01-consumer-group"
+            - name: KAFKA_TOPIC
+              value: "ibnn.intent_json_published"
+            - name: KAFKA_GROUP_ID
+              value: "ms-tb01-consumer-group"
+            - name: DEEPSEEK_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ms-tb01-secrets
+                  key: openai-api-key
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4001
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "200m"
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-tb01
+  namespace: ibnm-bloque-traduccion
+spec:
+  type: ClusterIP
+  type: ClusterIP
+  selector:
+    app: ms-tb01
+  ports:
+    - name: http
+      port: 4001
+      targetPort: 4001
+      protocol: TCP

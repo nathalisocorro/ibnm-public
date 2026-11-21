@@ -1,0 +1,12 @@
+services:
+  ssot-mock:
+    build:
+      context: .
+    container_name: ibnm-ssot-mock
+    ports:
+      - "6303:6303"
+    environment:
+      SSOT_DB_PATH: /data/ssot.db
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

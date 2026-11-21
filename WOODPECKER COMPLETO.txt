@@ -1,0 +1,233 @@
+# .woodpecker.yml — raíz del monorepo IBNM
+# Patrón: docker:cli + docker.sock montado (NO plugin-docker-buildx)
+# Secretos: environment + from_secret (sintaxis vigente)
+# Deploy: NO ocurre aquí. Harbor dispara webhook → listener Python → rollout restart
+
+when:
+  - event: push
+    branch: [main, develop]
+
+steps:
+  # ---------------- TRADUCCIÓN ----------------
+  build-push-ms-tb01:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build -t 172.19.0.1:8080/ibnm/image-ms-tb01:$TAG arquitectura/bloque_traduccion/ms-tb01
+      - docker push 172.19.0.1:8080/ibnm/ms-tb01:$TAG
+    when:
+      - path: "arquitectura/bloque_traduccion/ms-tb01/**"
+
+  build-push-ms-tb-chatui:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build -t 172.19.0.1:8080/ibnm/ms-tb-chatui:$TAG arquitectura/bloque_traduccion/MS-TB-CHATUI
+      - docker push 172.19.0.1:8080/ibnm/ms-tb-chatui:$TAG
+    when:
+      - path: "arquitectura/bloque_traduccion/MS-TB-CHATUI/**"
+
+  # ---------------- PLANIFICACIÓN ----------------
+  build-push-ms-pb01:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build -t 172.19.0.1:8080/ibnm/ms-pb01:$TAG arquitectura/bloque_planificacion/MS-PB01
+      - docker push 172.19.0.1:8080/ibnm/ms-pb01:$TAG
+    when:
+      - path: "arquitectura/bloque_planificacion/MS-PB01/**"
+
+  build-push-ms-pb02:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build -t 172.19.0.1:8080/ibnm/ms-pb02:$TAG arquitectura/bloque_planificacion/MS-PB02
+      - docker push 172.19.0.1:8080/ibnm/ms-pb02:$TAG
+    when:
+      - path: "arquitectura/bloque_planificacion/MS-PB02/**"
+
+  # ---------------- ORQUESTACIÓN ----------------
+  build-push-ms-ob01:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build -t 172.19.0.1:8080/ibnm/ms-ob01:$TAG arquitectura/bloque_orquestacion/MS-OB01
+      - docker push 172.19.0.1:8080/ibnm/ms-ob01:$TAG
+    when:
+      - path: "arquitectura/bloque_orquestacion/MS-OB01/**"
+
+  build-push-ms-ob02:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build -t 172.19.0.1:8080/ibnm/ms-ob02:$TAG arquitectura/bloque_orquestacion/MS-OB02
+      - docker push 172.19.0.1:8080/ibnm/ms-ob02:$TAG
+    when:
+      - path: "arquitectura/bloque_orquestacion/MS-OB02/**"
+
+  # ---------------- VALIDACIÓN ----------------
+  # Agregar aquí un step por cada microservicio cuando se defina su estructura.# .woodpecker.yml — raíz del monorepo IBNM
+# Patrón: docker:cli + docker.sock montado (NO plugin-docker-buildx)
+# Secretos: environment + from_secret (sintaxis vigente)
+# Deploy: NO ocurre aquí. Harbor dispara webhook → listener Python → rollout restart
+
+when:
+  - event: push
+    branch: [main, develop]
+
+steps:
+  # ---------------- TRADUCCIÓN ----------------
+  build-push-ms-tb01:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build -t 172.19.0.1:8080/ibnm/image-ms-tb01:$TAG arquitectura/bloque_traduccion/ms-tb01
+      - docker push 172.19.0.1:8080/ibnm/ms-tb01:$TAG
+    when:
+      - path: "arquitectura/bloque_traduccion/ms-tb01/**"
+
+  build-push-ms-tb-chatui:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build -t 172.19.0.1:8080/ibnm/ms-tb-chatui:$TAG arquitectura/bloque_traduccion/MS-TB-CHATUI
+      - docker push 172.19.0.1:8080/ibnm/ms-tb-chatui:$TAG
+    when:
+      - path: "arquitectura/bloque_traduccion/MS-TB-CHATUI/**"
+
+  # ---------------- PLANIFICACIÓN ----------------
+  build-push-ms-pb01:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build -t 172.19.0.1:8080/ibnm/ms-pb01:$TAG arquitectura/bloque_planificacion/MS-PB01
+      - docker push 172.19.0.1:8080/ibnm/ms-pb01:$TAG
+    when:
+      - path: "arquitectura/bloque_planificacion/MS-PB01/**"
+
+  build-push-ms-pb02:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build -t 172.19.0.1:8080/ibnm/ms-pb02:$TAG arquitectura/bloque_planificacion/MS-PB02
+      - docker push 172.19.0.1:8080/ibnm/ms-pb02:$TAG
+    when:
+      - path: "arquitectura/bloque_planificacion/MS-PB02/**"
+
+  # ---------------- ORQUESTACIÓN ----------------
+  build-push-ms-ob01:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build -t 172.19.0.1:8080/ibnm/ms-ob01:$TAG arquitectura/bloque_orquestacion/MS-OB01
+      - docker push 172.19.0.1:8080/ibnm/ms-ob01:$TAG
+    when:
+      - path: "arquitectura/bloque_orquestacion/MS-OB01/**"
+
+  build-push-ms-ob02:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build -t 172.19.0.1:8080/ibnm/ms-ob02:$TAG arquitectura/bloque_orquestacion/MS-OB02
+      - docker push 172.19.0.1:8080/ibnm/ms-ob02:$TAG
+    when:
+      - path: "arquitectura/bloque_orquestacion/MS-OB02/**"
+
+  # ---------------- VALIDACIÓN ----------------
+  # Agregar aquí un step por cada microservicio cuando se defina su estructura.

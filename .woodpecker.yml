@@ -1,0 +1,59 @@
+# .woodpecker.yml — raíz del monorepo IBNM
+# Patrón: docker:cli + docker.sock montado (NO plugin-docker-buildx)
+# Secretos: environment + from_secret (sintaxis vigente)
+# Deploy: NO ocurre aquí. Harbor dispara webhook → listener Python → rollout restart
+
+when:
+  - event: push
+    branch: [main, develop]
+
+steps:
+  # ---------------- TRADUCCIÓN ----------------
+  build-push-ms-tb01:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build --no-cache -t 172.19.0.1:8080/ibnm/ms-tb01:$TAG arquitectura/bloque_traduccion/ms_tb01
+      - docker push 172.19.0.1:8080/ibnm/ms-tb01:$TAG
+    when:
+      - path: "arquitectura/bloque_traduccion/ms_tb01/**"
+    # ---------------- PLANIFICACIÓN ----------------
+  build-push-ms-pb05:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build -t 172.19.0.1:8080/ibnm/ms-pb05:$TAG arquitectura/bloque_planificacion/ms_pb05
+      - docker push 172.19.0.1:8080/ibnm/ms-pb05:$TAG
+#----------------------ORQUESTACION----------------------
+  build-push-ms-ob02:
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HARBOR_USER:
+        from_secret: harbor_user
+      HARBOR_PASS:
+        from_secret: harbor_pass
+    commands:
+      - export TAG=$( [ "$CI_COMMIT_BRANCH" = "main" ] && echo latest || echo dev-latest )
+      - docker login 172.19.0.1:8080 -u "$$HARBOR_USER" -p "$$HARBOR_PASS"
+      - docker build -t 172.19.0.1:8080/ibnm/ms-ob02:$TAG arquitectura/bloque_orquestacion/ms_ob02
+      - docker push 172.19.0.1:8080/ibnm/ms-ob02:$TAG
+    when:
+      - path: "arquitectura/bloque_orquestacion/ms_ob02/**"
